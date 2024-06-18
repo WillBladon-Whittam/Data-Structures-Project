@@ -67,10 +67,15 @@ class PlaceToStay:
     """
     Object to hold infomation about a place to stay
     """
-    def __init__(self, name: str, _type: Type, address: Address):
+    def __init__(self, name: str, _type: Type, address: Address, avalability: int):
         self.name = name
         self.type = _type
         self.address = address
+        
+        self.avalability = avalability
+        
+        # Stores the date as the key and the number of avaliable rooms
+        self.bookings = {}
         
     def __str__(self) -> str:
         return f"Name: {self.name} \nType: {self.type} \nAddress: {self.address}"
@@ -82,6 +87,29 @@ class PlaceToStay:
             return True
         elif search_value in self.address:
             return True
+        
+    def __gt__(self, other):
+        return self.name > other
+        
+    def __lt__(self, other):
+        return self.name < other
+    
+    def __eq__(self, other):
+        return self.name == other
+    
+    def book(self, date, number):
+        """
+        Books slots for the room, taking the date and number of slots as arguments
+        """
+        if date not in self.bookings.keys():
+            self.bookings[date] = self.avalability
+            
+        if self.bookings[date] < number:
+            print(f"Only {self.bookings[date]} slots left! {number} is too many to book!")
+        else:
+            self.bookings[date] = self.bookings[date] - number
+            print(f"Successfully booked {number} slots on {date}!")
+        
     
     
         
