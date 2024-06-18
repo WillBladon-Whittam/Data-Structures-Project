@@ -16,15 +16,13 @@ class Address(Base):
     """
     Object to hold the address infomation of a place to stay
     """
-    def __init__(self) -> None:
-        self.number = None
-        self.roadname = None
-        self.postcode = None
-        
-        self.get()
-        
+    def __init__(self, number: int = None, roadname: str = None, postcode: str = None) -> None:
+        self.number = number
+        self.roadname = roadname
+        self.postcode = postcode
+                
     def __str__(self) -> str:
-        return f"{self.number} {self.roadname}, {self.postcode}"
+        return f"{self.number} - {self.roadname} - {self.postcode}"
     
     def __contains__(self, search_value):
         if search_value in str(self.number):
@@ -45,12 +43,10 @@ class Type(Base):
     """
     Object to hold the type of a place to stay
     """
-    def __init__(self) -> None:
-        self.type = None
+    def __init__(self, _type: Literal["Hotel", "Hostel", "BNB"] = None) -> None:
+        self.type = _type
         self.valid_types = ["Hotel", "Hostel", "BNB"]
-        
-        self.get()
-        
+                
     def __str__(self) -> str:
         return f"{self.type}"
     
@@ -96,6 +92,9 @@ class PlaceToStay:
     
     def __eq__(self, other):
         return self.name == other
+    
+    def __iter__(self):
+        return iter([self.name, str(self.type), str(self.address), str(self.avalability)])
     
     def book(self, date, number):
         """

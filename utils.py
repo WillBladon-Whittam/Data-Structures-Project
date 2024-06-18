@@ -1,10 +1,15 @@
 from typing import Tuple, List, Union
 import datetime
 
-def prompt_number(prompt: str, _range: Tuple[int, int | None] = None,
-                    error_message: str = "Invalid Value!") -> int:
+
+def prompt_number(prompt: str, _range: Tuple[int, int | None] = None, error_message: str = "Invalid Value!") -> int:
     """
-    Prompts the user for a number between a specific range.
+    Prompts for a valid number
+
+    Args:
+        prompt: Prompt displayed before entering the number
+        _range: Can specify a min and/or max number to be required
+        error_message: Specify the error message to be displayed
     """
     selected_option = -1
     if _range is None:  # If no range is specified
@@ -37,12 +42,21 @@ def prompt_number(prompt: str, _range: Tuple[int, int | None] = None,
                 print(f"{error_message}\n")
     return selected_option
 
-def prompt_date(prompt: str, _range: Tuple[datetime.date, Union[datetime.date, None]] = None, error_message: str = "Invalid Date!"):
+
+def prompt_date(prompt: str, _range: Tuple[datetime.date, Union[datetime.date, None]] = None, error_message: str = "Invalid Date!") -> datetime.date:
+    """
+    Prompts for a valid date
+
+    Args:
+        prompt: Prompt displayed before entering the date
+        _range: Can specify a min and/or max date to be required
+        error_message: Specify the error message to be displayed
+    """
     date = datetime.date(1, 1, 1)
     if _range is None:  # If no range is specified
         while True:
             try:
-                date_input = input(prompt) # validate this
+                date_input = input(prompt)  # validate this
                 day, month, year = map(int, date_input.split('-'))
                 date = datetime.date(year=year, month=month, day=day)
                 return date
@@ -74,7 +88,8 @@ def prompt_date(prompt: str, _range: Tuple[datetime.date, Union[datetime.date, N
                 print(f"{error_message}\n")
                 continue
             return date
-    
+
+
 def display_options(options: List[str]) -> None:
     """
     Displays the options given in an ordered list
@@ -84,4 +99,3 @@ def display_options(options: List[str]) -> None:
         print(f"{i}.\t{split_option[0]}")
         for line in split_option[1:]:
             print(f"  \t{line}")
-            
