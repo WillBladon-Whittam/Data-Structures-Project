@@ -90,12 +90,48 @@ def prompt_date(prompt: str, _range: Tuple[datetime.date, Union[datetime.date, N
             return date
 
 
-def display_options(options: List[str]) -> None:
+def display_options(options: List[str], empty_prompt: str = "List is empty!") -> None:
     """
     Displays the options given in an ordered list
     """
+    if not options:
+        print(empty_prompt)
+        return
     for i, option in enumerate(options, start=1):
         split_option = str(option).split("\n")
         print(f"{i}.\t{split_option[0]}")
         for line in split_option[1:]:
             print(f"  \t{line}")
+            
+            
+def quick_sort(array):
+    """
+    An implementation of quick sort.
+    
+    Time Complexity:
+    - Best Case: O(n log n)
+    - Average Vase: O(n log n)
+    - Worst Case: O(n^2)
+    
+    Space Complexity:
+    - Best Case: O(log n)
+    - Average Vase: O(log n)
+    - Worst Case: O(n)
+    
+    """
+    less = []
+    equal = []
+    greater = []
+
+    if len(array) > 1:
+        pivot = array[0]
+        for x in array:
+            if x < pivot:
+                less.append(x)
+            elif x == pivot:
+                equal.append(x)
+            elif x > pivot:
+                greater.append(x)
+        return quick_sort(less) + equal + quick_sort(greater) 
+    else:
+        return array

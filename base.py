@@ -1,9 +1,9 @@
 from enum import Enum
 import abc
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Literal, Dict, List
 from utils import prompt_number, display_options
-
+import datetime
 
 class Base(ABC):
 
@@ -33,7 +33,7 @@ class Address(Base):
             return True
     
     def get(self):
-        self.number = prompt_number(prompt="Please enter your house number: ")
+        self.number = prompt_number(prompt="Please enter your street number: ")
         self.roadname = input("Please enter your road name: ")
         self.postcode = input("Please enter your postcode: ").strip()
 
@@ -59,6 +59,13 @@ class Type(Base):
         self.type = self.valid_types[prompt_number(prompt="Please enter the type: ", _range=(1, len(self.valid_types)))-1]
 
 
+"""
+Current the way slots are stored is that the updated avaliablity for the day that is booked
+is stored in a dictionary with the key as the date and the value as the remaining slots avaliable.
+This implementation makes sense as the brief doesn't require specifc people to book something.
+Might just add this anyway as its abit shit without.
+"""
+
 class PlaceToStay:
     """
     Object to hold infomation about a place to stay
@@ -72,6 +79,9 @@ class PlaceToStay:
         
         # Stores the date as the key and the number of avaliable rooms
         self.bookings = {}
+        
+        # self.enquiries = enquiries
+        self.enquiries = []
         
     def __str__(self) -> str:
         return f"Name: {self.name} \nType: {self.type} \nAddress: {self.address}"
@@ -96,18 +106,22 @@ class PlaceToStay:
     def __iter__(self):
         return iter([self.name, str(self.type), str(self.address), str(self.avalability)])
     
-    def book(self, date, number):
+    def book(self, date: datetime.datetime, number: int):
         """
         Books slots for the room, taking the date and number of slots as arguments
         """
         if date not in self.bookings.keys():
-            self.bookings[date] = self.avalability
-            
-        if self.bookings[date] < number:
-            print(f"Only {self.bookings[date]} slots left! {number} is too many to book!")
+            if number <= self.avalability:
+                self.bookings[date] = self.avalability - number
+                print(f"Successfully booked {number} slots on {date}!")
+            else:
+                print(f"Only {self.avalability} slots left! {number} is too many to book!")
         else:
-            self.bookings[date] = self.bookings[date] - number
-            print(f"Successfully booked {number} slots on {date}!")
+            if number > self.bookings[date]:
+                print(f"Only {self.bookings[date]} slots left! {number} is too many to book!")
+            else:
+                self.bookings[date] -= number
+                print(f"Successfully booked {number} slots on {date}!")
         
     
     

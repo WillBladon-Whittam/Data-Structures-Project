@@ -1,9 +1,15 @@
 from base import PlaceToStay, Address, Type
-from utils import prompt_number, display_options, prompt_date
+from utils import prompt_number, display_options, prompt_date, quick_sort
 
 import datetime
 import csv
 import os
+import json
+
+
+"""
+Store bookings (dict) and enquiries (list) in a csv
+"""
 
 
 class Session:
@@ -12,16 +18,75 @@ class Session:
         
         # Read in from the CSV
         if os.path.exists("places_to_stay.csv"):
-            with open("places_to_stay.csv", "r", newline="") as f:
-                csv_reader = csv.reader(f)
-                next(csv_reader, None)
-                for row in csv_reader:
+            with open("places_to_stay.csv", "r") as places_to_stay_csv, open("bookings.csv", "r") as bookings_csv, open("enquiries.csv", "r") as enquiries_csv:
+                csv_reader_places_to_stay = csv.reader(places_to_stay_csv)
+                csv_reader_bookings = csv.reader(bookings_csv)
+                csv_reader_enquiries = csv.reader(enquiries_csv)
+                next(csv_reader_places_to_stay, None)
+                next(csv_reader_bookings, None)
+                next(csv_reader_enquiries, None)
+                places_to_stay = []
+                for row in csv_reader_places_to_stay:
                     address_number, address_name, address_postcode = row[2].split("-")
-                    self.places.append(PlaceToStay(name=row[0], 
-                                                _type=Type(_type=row[1]),
-                                                address=Address(number=address_number.strip(), roadname=address_name.strip(), postcode=address_postcode.strip()),
-                                                avalability=row[3]))
+                    places_to_stay.append(PlaceToStay(name=row[0], 
+                                                     _type=Type(_type=row[1]),
+                                                     address=Address(number=address_number.strip(), roadname=address_name.strip(), postcode=address_postcode.strip()),
+                                                     avalability=int(row[3])))
+        
+                for row in csv_reader_bookings:
+                    for place in places_to_stay:
+                        if row[0] == place.name:
+                            place.bookings[datetime.datetime.strptime(row[1], "%d-%m-%Y")] = row[2]
+                            
+                for row in csv_reader_enquiries:
+                    for place in places_to_stay:
+                        if row[0] == place.name:
+                            place.enquiries.append(row[1])
+                
+                self.places = places_to_stay
         self.main_loop()
+        
+    def find_place(self):
+        """
+        Accepts a name, and checks if it is in the list
+        """
+        if len(self.places) == 0:
+            print("No places found.")
+            return None
+        found = False
+        while not found:
+            name = input("Please enter the name of the place to stay: ")
+            for place in self.places:
+                if name == place:
+                    found = True
+                    break # break for loop
+            if not found:
+                print("Name not found, please try again.")
+        return place
+    
+    def update_csv(self):
+        with open("places_to_stay.csv", "w", newline="") as f:
+            csvwriter = csv.writer(f)
+            csvwriter.writerow(["name", "type", "address", "avalability"])
+            for place in self.places:
+                row = []
+                for item in place:
+                    row.append(item)
+                csvwriter.writerow(row)
+                
+        with open("bookings.csv", "w", newline="") as f:
+            csvwriter = csv.writer(f)
+            csvwriter.writerow(["name", "date", "slots_remaining"])
+            for place in self.places:
+                for date, amount in place.bookings.items():
+                    csvwriter.writerow([place.name, date.strftime("%d-%m-%Y"), amount])
+                    
+        with open("enquiries.csv", "w", newline="") as f:
+            csvwriter = csv.writer(f)
+            csvwriter.writerow(["name", "enquiry"])
+            for place in self.places:
+                for enquiry in place.enquiries:
+                    csvwriter.writerow([place.name, enquiry])
 
     def add_place(self):
         """
@@ -36,16 +101,7 @@ class Session:
         
         place = PlaceToStay(name=name, _type=type_, address=address, avalability=avalability)
         self.places.append(place)
-        
-        with open("places_to_stay.csv", "a", newline="") as f:
-            csvwriter = csv.writer(f)
-            print(os.path.exists("places_to_stay.csv"), os.path.getsize("places_to_stay.csv"))
-            if os.path.getsize("places_to_stay.csv") == 0:
-                csvwriter.writerow(["name", "type", "address", "avalability"])
-            row = []
-            for item in place:
-                row.append(item)
-            csvwriter.writerow(row)
+        self.update_csv()
         
     def search_place(self):
         """
@@ -58,34 +114,55 @@ class Session:
             if search_value in place:
                 matched_places.append(place)
         
-        matched_places.sort()
-        display_options(options=matched_places)
+        matched_places = quick_sort(matched_places)
+        display_options(options=matched_places, empty_prompt="No places found!")
         
     def display_all_places(self):
         """
         Display all places to stay.
         """
-        self.places.sort()
-        display_options(options=self.places)
+        self.places = quick_sort(self.places)
+        display_options(options=self.places, empty_prompt="No places found!")
         
     def make_booking(self):
         """
         Make a booking for a specifc date
         """
-        found = False
-        while not found:
-            name = input("Please enter the name of the booking: ")
-            for place in self.places:
-                if name == place:
-                    found = True
-            if not found:
-                print("Name not found, please try again.")
-        
+        place = self.find_place()
+        if place is None:
+            return
         date = prompt_date(prompt="Please enter the date of the booking (DD-MM-YYYY): ", _range=(datetime.date.today(), None))
         number = prompt_number(prompt="Please enter the number of slots to book: ")
-        
-        place.book(date=date, number=number)
 
+        place.book(date=date, number=number)
+        self.update_csv()
+            
+        
+    def make_enquiry(self):
+        place = self.find_place()
+        if place is None:
+            return
+
+        enquiry = input(f"Please enter your enquiry for the staff of {place.name}: ")
+        place.enquiries.append(enquiry)
+        self.update_csv()
+        
+        print("Thank you. Your enquiry has been placed")
+        
+    def answer_enquiry(self):
+        place = self.find_place()
+        if place is None:
+            return
+        
+        display_options(options=place.enquiries, empty_prompt="No Enquiries found")
+        if len(place.enquiries) == 0:
+            return
+        enquiry_index = prompt_number(prompt="\nPlease select the enquiry to answer: ", _range=(1, len(place.enquiries))) - 1
+        
+        del place.enquiries[enquiry_index]
+        self.update_csv()
+        print("The enquiry has been answered!")
+        
     def main_menu(self) -> int:
         """
         Displays the main menu, returning the navigation integer
@@ -96,8 +173,9 @@ class Session:
               "2.\tSearch for a place to stay\n"
               "3.\tShow all places to stay\n"
               "4.\tMake a Booking\n"
-              "5.\tAnswer Enquires\n"
-              "6.\tExit\n")
+              "5.\tMake an Enquiry\n"
+              "6.\tAnswer Enquiries\n"
+              "7.\tExit\n")
         return prompt_number("Select an option: ", _range=(1, 7))
 
     def main_loop(self) -> None:
@@ -121,9 +199,12 @@ class Session:
                     self.make_booking()
                 
                 case 5:
-                    raise NotImplemented
-
+                    self.make_enquiry()
+                    
                 case 6:
+                    self.answer_enquiry()
+
+                case 7:
                     quit()
 
 
