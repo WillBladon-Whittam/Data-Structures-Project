@@ -1,15 +1,10 @@
 from base import PlaceToStay, Address, Type
-from utils import prompt_number, display_options, prompt_date, quick_sort
+from utils import prompt_number, display_options, prompt_date, prompt_yes_no, quick_sort
 
 import datetime
 import csv
 import os
 import json
-
-
-"""
-Store bookings (dict) and enquiries (list) in a csv
-"""
 
 
 class Session:
@@ -154,14 +149,24 @@ class Session:
         if place is None:
             return
         
-        display_options(options=place.enquiries, empty_prompt="No Enquiries found")
         if len(place.enquiries) == 0:
+            print("No Enquiries found")
             return
-        enquiry_index = prompt_number(prompt="\nPlease select the enquiry to answer: ", _range=(1, len(place.enquiries))) - 1
+                
+        print(f"{len(place.enquiries)} Enquirys Found")
         
-        del place.enquiries[enquiry_index]
-        self.update_csv()
-        print("The enquiry has been answered!")
+        counter = 0
+        while counter < len(place.enquiries):
+            print(f"Enquiry {counter+1}: {place.enquiries[counter]}")
+            answer = prompt_yes_no("Do you want to answer this enquiry (Y/N)? ")
+            if answer:
+                place.enquiries.pop(counter)
+                self.update_csv()
+                print("The enquiry has been answered!")
+            else:
+                print("The enquiry has not been answered!")
+                counter += 1
+                
         
     def main_menu(self) -> int:
         """

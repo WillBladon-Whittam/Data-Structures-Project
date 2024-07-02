@@ -88,6 +88,21 @@ def prompt_date(prompt: str, _range: Tuple[datetime.date, Union[datetime.date, N
                 print(f"{error_message}\n")
                 continue
             return date
+        
+        
+def prompt_yes_no(prompt: str) -> bool:
+        """
+        Prompts the user for a Y/N response
+        """
+        selected_option = None
+        while selected_option not in ["Y", "N", "y", "n"]:
+            selected_option = input(prompt)
+            if selected_option not in ["Y", "N", "y", "n"]:
+                print("Please enter Y/N\n")
+        if selected_option.upper() == "Y":
+            return True
+        elif selected_option.upper() == "N":
+            return False
 
 
 def display_options(options: List[str], empty_prompt: str = "List is empty!") -> None:
