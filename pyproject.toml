@@ -1,0 +1,8 @@
+[project]
+name = "data-structures-project"
+version = "1.0.0"
+description = "data-structures-project"
+
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.2,<4"]

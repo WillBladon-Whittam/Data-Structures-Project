@@ -38,27 +38,6 @@ class Address(Base):
         self.postcode = input("Please enter your postcode: ").strip()
 
 
-# Just use an enum maybe?
-class Type(Base):
-    """
-    Object to hold the type of a place to stay
-    """
-    def __init__(self, _type: Literal["Hotel", "Hostel", "BNB"] = None) -> None:
-        self.type = _type
-        self.valid_types = ["Hotel", "Hostel", "BNB"]
-                
-    def __str__(self) -> str:
-        return f"{self.type}"
-    
-    def __contains__(self, search_value):
-        if search_value in self.type:
-            return True
-    
-    def get(self):
-        display_options(options=self.valid_types)
-        self.type = self.valid_types[prompt_number(prompt="Please enter the type: ", _range=(1, len(self.valid_types)))-1]
-
-
 """
 Current the way slots are stored is that the updated avaliablity for the day that is booked
 is stored in a dictionary with the key as the date and the value as the remaining slots avaliable.
@@ -66,16 +45,27 @@ This implementation makes sense as the brief doesn't require specifc people to b
 Might just add this anyway as its abit shit without.
 """
 
-class PlaceToStay:
+class Place:
     """
     Object to hold infomation about a place to stay
     """
-    def __init__(self, name: str, _type: Type, address: Address, avalability: int):
+    def __init__(self, name: str, _type: Literal["Hotel", "Hostel", "BNB", "POI"], address: Address = None, avalability: int = None, 
+                 neighbours: Dict[str, int] = None, heuristics: Dict[str, int] = None):
         self.name = name
         self.type = _type
         self.address = address
         
         self.avalability = avalability
+        
+        if neighbours is None:
+            self.neighbours = {}
+        else:
+            self.neighbours = neighbours
+            
+        if heuristics is None:
+            self.heuristics = {}
+        else:
+            self.heuristics = heuristics
         
         # Stores the date as the key and the number of avaliable rooms
         self.bookings = {}
@@ -84,7 +74,7 @@ class PlaceToStay:
         self.enquiries = []
         
     def __str__(self) -> str:
-        return f"Name: {self.name} \nType: {self.type} \nAddress: {self.address}"
+        return f"Name: {self.name} \nType: {self.type} \nAddress: {self.address} | {self.neighbours} | {self.heuristics}"
     
     def __contains__(self, search_value):
         if search_value in self.name:
@@ -122,6 +112,8 @@ class PlaceToStay:
             else:
                 self.bookings[date] -= number
                 print(f"Successfully booked {number} slots on {date}!")
+    
+        
         
     
     

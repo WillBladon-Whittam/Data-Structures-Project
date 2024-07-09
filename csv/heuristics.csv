@@ -1,0 +1,5 @@
+starting_place,ending_place,distance
+Test Route,Test Route2,100
+Test Route2,Test Route,100
+Test Route2,Train Station,200
+Test Route2,Park,506
