@@ -150,3 +150,31 @@ def quick_sort(array):
         return quick_sort(less) + equal + quick_sort(greater) 
     else:
         return array
+ 
+ 
+def boyer_moore_search(text, pattern):
+    '''
+    An implementation of boyer moore.
+    
+    Time Complexity: O(n)
+    Space Complexity: O(1)
+    '''
+    m = len(pattern)
+    n = len(text)
+    badChar = [-1]*256
+ 
+    for i in range(m):
+        badChar[ord(text[i])] = i
+         
+    s = 0
+    while(s <= n-m):
+        j = m-1
+ 
+        while j >= 0 and pattern[j] == text[s+j]:
+            j -= 1
+ 
+        if j < 0:
+            return True
+        else:
+            s += max(1, j-badChar[ord(text[s+j])])
+            

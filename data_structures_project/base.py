@@ -2,7 +2,7 @@ from enum import Enum
 import abc
 from abc import ABC, abstractmethod
 from typing import Literal, Dict, List
-from utils import prompt_number, display_options
+from utils import prompt_number, display_options, boyer_moore_search
 import datetime
 
 
@@ -18,15 +18,7 @@ class Address:
 
     def __str__(self) -> str:
         return f"{self.number} - {self.roadname} - {self.postcode}"
-
-    def __contains__(self, search_value):
-        if search_value in str(self.number):
-            return True
-        elif search_value in self.roadname:
-            return True
-        elif search_value in self.postcode:
-            return True
-
+    
     def get(self):
         self.number = prompt_number(prompt="Please enter your street number: ")
         self.roadname = input("Please enter your road name: ")
@@ -74,12 +66,22 @@ class Place:
         return f"Name: {self.name} \nType: {self.type} \nAddress: {self.address}"
 
     def __contains__(self, search_value):
-        if search_value in self.name:
+        # Not allowed according to the brief?
+        # if search_value in self.name:
+        #     return True
+        # elif search_value in self.type:
+        #     return True
+        # elif search_value in self.address:
+        #     return True
+        
+        if boyer_moore_search(self.name, search_value):
             return True
-        elif search_value in self.type:
+        elif boyer_moore_search(self.type, search_value):
             return True
-        elif search_value in self.address:
+        elif boyer_moore_search(str(self.address), search_value):
             return True
+        else:
+            return False
 
     def __gt__(self, other):
         return self.name > other
