@@ -1,5 +1,2 @@
 name,type,address,avalability
-Test Hostel,Hostel,42 - Test Rd - OL93 K24,3
-Test Hotel,Hotel,56 - Test Ave - JE92 K47,10
-Test Route,Hotel,39 - Test Drive - ,4
-Test Route2,Hotel,1 - 1 - 1,1
+Hotel,Hotel,1 - 1 - 1,1

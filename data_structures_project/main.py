@@ -1,6 +1,6 @@
 from data_structures_project.base import Place, Address
 from utils import prompt_number, display_options, prompt_date, prompt_yes_no, quick_sort
-from data_structures_project.route_search import dijkstra
+from data_structures_project.route_search import route_search
 
 import datetime
 import csv
@@ -14,12 +14,18 @@ class Session:
         self.places = []
         
         # Hard Code some points of intrest
-        self.poi = [Place(name="Park", _type="POI", neighbours={"Train Station": 42, "Library": 87, "Museum": 58}, heuristics={}),
-                    Place(name="Train Station", _type="POI", neighbours={"Park": 42, "Library": 94, "School": 51, "Museum": 36}, heuristics={}),
-                    Place(name="Library", _type="POI", neighbours={"Park": 87, "Train Station": 94, "School": 28, "Cinema": 85}, heuristics={}),
-                    Place(name="School", _type="POI", neighbours={"Train Station": 51, "Library": 28, "Cinema": 39}, heuristics={}),
-                    Place(name="Museum", _type="POI", neighbours={"Park": 58, "Train Station": 36, "Cinema": 99}, heuristics={}),
-                    Place(name="Cinema", _type="POI", neighbours={"Library": 85, "School": 39, "Museum": 99}, heuristics={})]
+        self.poi = [Place(name="Park", _type="POI", neighbours={"Train Station": 42, "Library": 87}, 
+                          heuristics={'Train Station': 40, 'Library': 80, 'School': 90, 'Museum': 50, 'Cinema': 90}),
+                    Place(name="Train Station", _type="POI", neighbours={"Park": 42, "Library": 94, "School": 51, "Museum": 36}, 
+                          heuristics={'Park': 40, 'Library': 60, 'School': 50, 'Museum': 35, 'Cinema': 80}),
+                    Place(name="Library", _type="POI", neighbours={"Park": 87, "Train Station": 94, "School": 28, "Cinema": 85}, 
+                          heuristics={'Park': 80, 'Train Station': 60, 'School': 20, 'Museum': 70, 'Cinema': 70}),
+                    Place(name="School", _type="POI", neighbours={"Train Station": 51, "Library": 28, "Cinema": 39}, 
+                          heuristics={'Park': 90, 'Train Station': 50, 'Library': 20, 'Museum': 60, 'Cinema': 40}),
+                    Place(name="Museum", _type="POI", neighbours={"Train Station": 36, "Cinema": 99}, 
+                          heuristics={'Park': 50, 'Train Station': 35, 'Library': 70, 'School': 60, 'Cinema': 60}),
+                    Place(name="Cinema", _type="POI", neighbours={"Library": 85, "School": 39, "Museum": 99}, 
+                          heuristics={'Park': 90, 'Train Station': 80, 'Library': 70, 'School': 40, 'Museum': 60})]
         
         # Read in from the CSV
         if os.path.exists("csv/places_to_stay.csv"):
@@ -57,25 +63,27 @@ class Session:
                             place.enquiries.append(row[1])
                             
                 for row in csv_reader_neighbours:
-                    for place in places_to_stay:
+                    for place in [*places_to_stay, *self.poi]:
                         if row[0] == place.name:
                             place.neighbours[row[1]] = int(row[2])
                             
                 for row in csv_reader_heuristics:
-                    for place in places_to_stay:
+                    for place in [*places_to_stay, *self.poi]:
                         if row[0] == place.name:
                             place.heuristics[row[1]] = int(row[2])
                 
                 self.places = places_to_stay
+                self.update_csv()
         self.main_loop()
         
     def find_place(self, prompt="Please enter the name of the place to stay: ", include_poi=False):
         """
         Accepts a name, and checks if it is in the list
         """
-        if len(self.places) == 0:
-            print("No places found.")
-            return None
+        if not include_poi:
+            if len(self.places) == 0:
+                print("No places found.")
+                return None
         found = False
         while not found:
             name = input(prompt)
@@ -120,7 +128,7 @@ class Session:
         with open("csv/neighbours.csv", "w", newline="") as f:
             csvwriter = csv.writer(f)
             csvwriter.writerow(["name", "neighbour"])
-            for place in self.places:
+            for place in [*self.places, *self.poi]:
                 if place.neighbours:
                     for neighbour, distance in place.neighbours.items():
                         csvwriter.writerow([place.name, neighbour, distance])
@@ -128,7 +136,7 @@ class Session:
         with open("csv/heuristics.csv", "w", newline="") as f:
             csvwriter = csv.writer(f)
             csvwriter.writerow(["starting_place", "ending_place", "distance"])
-            for place in self.places:
+            for place in [*self.places, *self.poi]:
                 if place.heuristics:
                     for ending_place, distance in place.heuristics.items():
                         csvwriter.writerow([place.name, ending_place, distance])
@@ -260,9 +268,20 @@ class Session:
         for place in [*self.places, *self.poi]:
             if place.neighbours:
                 weighted_graph[place.name] = place.neighbours
+                
+        use_heuristics = prompt_yes_no(prompt="Use heuristics (Y/N)? ")
+                
+        if use_heuristics:
+            heuristics = {}
+            for place in [*self.places, *self.poi]:
+                if place.heuristics:
+                    heuristics[place.name] = place.heuristics
+        else:
+            heuristics = None
         
-        path = dijkstra(weighted_graph, starting_place.name, ending_place.name)
-        print(*path, sep='->')
+        path = route_search(weighted_graph, starting_place.name, ending_place.name, a_star_heuristics=heuristics)
+        print(*path[0], sep='->')
+        print(f"Distance: {path[1]}")
                 
         
     def main_menu(self) -> int:

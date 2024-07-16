@@ -1,3 +1,19 @@
 name,neighbour
-Test Route,Park,200
-Test Route2,Park,700
+Park,Train Station,42
+Park,Library,87
+Train Station,Park,42
+Train Station,Library,94
+Train Station,School,51
+Train Station,Museum,36
+Library,Park,87
+Library,Train Station,94
+Library,School,28
+Library,Cinema,85
+School,Train Station,51
+School,Library,28
+School,Cinema,39
+Museum,Train Station,36
+Museum,Cinema,99
+Cinema,Library,85
+Cinema,School,39
+Cinema,Museum,99
