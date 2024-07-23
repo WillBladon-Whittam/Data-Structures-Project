@@ -2,7 +2,7 @@ from enum import Enum
 import abc
 from abc import ABC, abstractmethod
 from typing import Literal, Dict, List
-from utils import prompt_number, display_options, boyer_moore_search
+from data_structures_project.utils import prompt_number, display_options, boyer_moore_search
 import datetime
 
 

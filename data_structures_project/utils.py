@@ -1,5 +1,6 @@
-from typing import Tuple, List, Union
+from typing import Tuple, List, Union, Dict
 import datetime
+import heapq
 
 
 def prompt_number(prompt: str, _range: Tuple[int, int | None] = None, error_message: str = "Invalid Value!") -> int:
@@ -178,3 +179,65 @@ def boyer_moore_search(text, pattern):
         else:
             s += max(1, j-badChar[ord(text[s+j])])
             
+            
+def heuristic(start, end, heuristic_values):
+    """
+    Returns the heuristic straight-line distance from a specific node
+    """
+    if start == end:
+        return 0
+    return heuristic_values[start][end]
+
+
+def route_search(graph: Dict[str, Dict[str, int]], start: str, end: str, a_star_heuristics: None | Dict[str, Dict[str, int]] = None):
+    """
+    This function finds the shortest path between 2 locations.
+    The algorithm used by default is dijkstra, but A* can be used if a set of heuristic values are specified
+
+    Args:
+        graph: A graph containing the nodes and vertices to search
+        start: The node to start from in the graph 
+        end: The node to end on in the graph
+        a_star_heuristics: If set to None, use dijkstra (default).
+                           Otherwise contains heuristic values to use the A* algorithm
+
+    Returns:
+        Path used to get to the destination and the distance travelled
+    """
+    queue = [(0, 0, start)]
+    distances = {node: float('inf') for node in graph}
+    distances[start] = 0
+    previous_nodes = {node: None for node in graph}
+
+    while queue:
+        priority, current_distance, current_node = heapq.heappop(queue)
+
+        # If the current node is the destination, we are done
+        if current_node == end:
+            break
+
+        # If a shorter path to the current node has been found, skip this one
+        if current_distance > distances[current_node]:
+            continue
+
+        # Explore neighbors
+        for neighbor, weight in graph[current_node].items():
+            distance = current_distance + weight
+
+            # If a shorter path to the neighbor is found
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                previous_nodes[neighbor] = current_node
+                priority = distance + (heuristic(neighbor, end, a_star_heuristics) if a_star_heuristics is not None else 0)
+                heapq.heappush(queue, (priority, distance, neighbor))
+
+    # Reconstruct the shortest path
+    path = []
+    current_node = end
+    while previous_nodes[current_node] is not None:
+        path.insert(0, current_node)
+        current_node = previous_nodes[current_node]
+    if path:
+        path.insert(0, current_node)
+
+    return path, distances[end]

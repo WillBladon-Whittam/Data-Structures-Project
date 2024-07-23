@@ -1,6 +1,5 @@
 from data_structures_project.base import Place, Address
-from utils import prompt_number, display_options, prompt_date, prompt_yes_no, quick_sort
-from data_structures_project.route_search import route_search
+from data_structures_project.utils import prompt_number, display_options, prompt_date, prompt_yes_no, quick_sort, route_search
 
 import datetime
 import csv
