@@ -1,8 +1,5 @@
-from enum import Enum
-import abc
-from abc import ABC, abstractmethod
-from typing import Literal, Dict, List
-from data_structures_project.utils import prompt_number, display_options, boyer_moore_search
+from typing import Literal, Dict
+from data_structures_project.utils import prompt_number, boyer_moore_search
 import datetime
 
 
@@ -25,21 +22,13 @@ class Address:
         self.postcode = input("Please enter your postcode: ").strip()
 
 
-"""
-Current the way slots are stored is that the updated avaliablity for the day that is booked
-is stored in a dictionary with the key as the date and the value as the remaining slots avaliable.
-This implementation makes sense as the brief doesn't require specifc people to book something.
-Might just add this anyway as its abit shit without.
-"""
-
-
 class Place:
     """
     Object to hold infomation about a place to stay
     """
 
     def __init__(self, name: str, _type: Literal["Hotel", "Hostel", "BNB", "POI"], address: Address = None, avalability: int = None,
-                 neighbours: Dict[str, int] = None, heuristics: Dict[str, int] = None):
+                 neighbours: Dict[str, int] | None = None, heuristics: Dict[str, int] | None = None):
         self.name = name
         self.type = _type
         self.address = address
@@ -59,21 +48,12 @@ class Place:
         # Stores the date as the key and the number of avaliable rooms
         self.bookings = {}
 
-        # self.enquiries = enquiries
         self.enquiries = []
 
     def __str__(self) -> str:
-        return f"Name: {self.name} \nType: {self.type} \nAddress: {self.address}"
+        return f"Name: {self.name} \nType: {self.type} \nAddress: {self.address} | {self.neighbours} | {self.heuristics}"
 
     def __contains__(self, search_value):
-        # Not allowed according to the brief?
-        # if search_value in self.name:
-        #     return True
-        # elif search_value in self.type:
-        #     return True
-        # elif search_value in self.address:
-        #     return True
-        
         if boyer_moore_search(self.name.lower(), search_value.lower()):
             return True
         elif boyer_moore_search(self.type.lower(), search_value.lower()):

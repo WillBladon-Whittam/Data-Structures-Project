@@ -4,7 +4,6 @@ from data_structures_project.utils import prompt_number, display_options, prompt
 import datetime
 import csv
 import os
-import json
 
 
 class Session:
@@ -26,84 +25,82 @@ class Session:
                     Place(name="Cinema", _type="POI", neighbours={"Library": 85, "School": 39, "Museum": 99}, 
                           heuristics={'Park': 90, 'Train Station': 80, 'Library': 70, 'School': 40, 'Museum': 60})]
         
-        # Read in from the CSV
-        if os.path.exists("csv/places_to_stay.csv"):
-            with (open("csv/places_to_stay.csv", "r") as places_to_stay_csv, 
-                  open("csv/bookings.csv", "r") as bookings_csv, 
-                  open("csv/enquiries.csv", "r") as enquiries_csv,
-                  open("csv/neighbours.csv", "r") as neighbours_csv,
-                  open("csv/heuristics.csv") as heuristics_csv):
-                csv_reader_places_to_stay = csv.reader(places_to_stay_csv)
-                csv_reader_bookings = csv.reader(bookings_csv)
-                csv_reader_enquiries = csv.reader(enquiries_csv)
-                csv_reader_neighbours = csv.reader(neighbours_csv)
-                csv_reader_heuristics = csv.reader(heuristics_csv)
-                next(csv_reader_places_to_stay, None)
-                next(csv_reader_bookings, None)
-                next(csv_reader_enquiries, None)
-                next(csv_reader_neighbours, None)
-                next(csv_reader_heuristics, None)
-                places_to_stay = []
-                for row in csv_reader_places_to_stay:
-                    address_number, address_name, address_postcode = row[2].split("-")
-                    places_to_stay.append(Place(name=row[0], 
-                                                     _type=row[1],
-                                                     address=Address(number=address_number.strip(), roadname=address_name.strip(), postcode=address_postcode.strip()),
-                                                     avalability=int(row[3])))
+        self.load_csv()
+        self.main_loop()
         
-                for row in csv_reader_bookings:
+    @staticmethod
+    def main_menu() -> int:
+        """
+        Displays the main menu, returning the navigation integer
+        """
+        print("\nPlaces to Stay Main Menu\n"
+              "----------------------------------------------------\n"
+              "1.\tAdd a place to stay\n"
+              "2.\tSearch for a place to stay\n"
+              "3.\tShow all places to stay\n"
+              "4.\tMake a Booking\n"
+              "5.\tMake an Enquiry\n"
+              "6.\tAnswer Enquiries\n"
+              "7.\tFind Route\n"
+              "8.\tExit\n")
+        return prompt_number("Select an option: ", _range=(1, 7))
+    
+    def load_csv(self):
+        """
+        Reads data from CSV files and populates the places and poi attributes.
+        """
+        file_paths = [
+            "csv/places_to_stay.csv",
+            "csv/bookings.csv",
+            "csv/enquiries.csv",
+            "csv/neighbours.csv",
+            "csv/heuristics.csv"
+        ]
+
+        if all(os.path.exists(file_path) for file_path in file_paths):
+            with (open(file_paths[0], "r") as places_file,
+                open(file_paths[1], "r") as bookings_file,
+                open(file_paths[2], "r") as enquiries_file,
+                open(file_paths[3], "r") as neighbours_file,
+                open(file_paths[4], "r") as heuristics_file):
+                
+                readers = [csv.reader(file) for file in (places_file, bookings_file, enquiries_file, neighbours_file, heuristics_file)]
+                for reader in readers:
+                    next(reader, None)
+                    
+                places_to_stay = []
+                for row in readers[0]:
+                    places_to_stay.append(
+                        Place(
+                            name=row[0],
+                            _type=row[1],
+                            address=Address(*map(str.strip, row[2].split("-"))),
+                            avalability=int(row[3])
+                        )
+                    )
+
+                for row in readers[1]:
                     for place in places_to_stay:
                         if row[0] == place.name:
                             place.bookings[datetime.datetime.strptime(row[1], "%d-%m-%Y")] = row[2]
                             
-                for row in csv_reader_enquiries:
+                for row in readers[2]:
                     for place in places_to_stay:
                         if row[0] == place.name:
                             place.enquiries.append(row[1])
                             
-                for row in csv_reader_neighbours:
+                for row in readers[3]:
                     for place in [*places_to_stay, *self.poi]:
                         if row[0] == place.name:
                             place.neighbours[row[1]] = int(row[2])
                             
-                for row in csv_reader_heuristics:
+                for row in readers[4]:
                     for place in [*places_to_stay, *self.poi]:
                         if row[0] == place.name:
                             place.heuristics[row[1]] = int(row[2])
                 
                 self.places = places_to_stay
-                self.update_csv()
-        self.main_loop()
-        
-    def find_place(self, prompt="Please enter the name of the place to stay: ", include_poi=False, route=False):
-        """
-        Accepts a name, and checks if it is in the list
-        """
-        if not include_poi:
-            if len(self.places) == 0:
-                print("No places found.")
-                return None
-        found = False
-        while not found:
-            name = input(prompt)
-            if include_poi:
-                for place in [*self.places, *self.poi]:
-                    if name == place:
-                        if route:
-                            if place.neighbours:
-                                found = True
-                                break # break for loop
-                        else:
-                            found = True
-                            break # break for loop
-            else:
-                for place in self.places:
-                    if name == place:
-                        found = True
-                        break # break for loop
-            if not found:
-                print("Name not found, please try again.")
-        return place
+        self.update_csv()
     
     def update_csv(self):
         with open("csv/places_to_stay.csv", "w", newline="") as f:
@@ -144,12 +141,36 @@ class Session:
                 if place.heuristics:
                     for ending_place, distance in place.heuristics.items():
                         csvwriter.writerow([place.name, ending_place, distance])
+                        
+    def find_place(self, prompt="Please enter the name of the place to stay: ", include_poi=False, route=False):
+        """
+        Accepts a name, and checks if it is in the list
+        """
+        places_to_check = self.places + self.poi if include_poi else self.places
+
+        if not places_to_check:
+            print("No places found.")
+            return None
+
+        while True:
+            place_name = input(prompt)
+            for place in places_to_check:
+                if place_name == place:
+                    if not route or place.neighbours:
+                        return place
+            print("Name not found, please try again.")
 
     def add_place(self):
         """
         Adds a place to stay, append to a CSV
         """
-        name = input("Please enter the name: ")
+        while True:
+            name = input("Please enter the name: ")
+            if name not in [place.name for place in self.places]:
+                break
+            print("That name is already a place to stay")
+
+            
         valid_types = ["Hotel", "Hostel", "BNB"]
         display_options(options=valid_types)
         _type = valid_types[prompt_number(prompt="Please enter the type: ", _range=(1, len(valid_types)))-1]
@@ -175,8 +196,6 @@ class Session:
                     straight_distance = prompt_number(prompt=f"Please enter the straight-line distance to {place.name}: ")
                     heuristics[place.name] = straight_distance
                     place.heuristics[name] = straight_distance  # Add the heuristics to both the newly added place and the existing place
-            else:
-                heuristics = None
         else:
             neighbours = None
             heuristics = None
@@ -284,22 +303,6 @@ class Session:
         print(*path[0], sep='->')
         print(f"Distance: {path[1]}")
                 
-        
-    def main_menu(self) -> int:
-        """
-        Displays the main menu, returning the navigation integer
-        """
-        print("\nPlaces to Stay Main Menu\n"
-              "----------------------------------------------------\n"
-              "1.\tAdd a place to stay\n" # Add save to file, book, routing and enquire to this
-              "2.\tSearch for a place to stay\n"
-              "3.\tShow all places to stay\n"
-              "4.\tMake a Booking\n"
-              "5.\tMake an Enquiry\n"
-              "6.\tAnswer Enquiries\n"
-              "7.\tFind Route\n"
-              "8.\tExit\n")
-        return prompt_number("Select an option: ", _range=(1, 7))
 
     def main_loop(self) -> None:
         """
@@ -309,7 +312,7 @@ class Session:
             # NOTE: match/case statements are python 3.10+
             match self.main_menu():
 
-                case 1:  # Add a place to stay
+                case 1:
                     self.add_place()
 
                 case 2:

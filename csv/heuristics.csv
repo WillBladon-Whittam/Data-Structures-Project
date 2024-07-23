@@ -1,4 +1,10 @@
 starting_place,ending_place,distance
+Test Hostel,Park,9
+Test Hostel,Train Station,50
+Test Hostel,Library,85
+Test Hostel,School,65
+Test Hostel,Museum,60
+Test Hostel,Cinema,100
 Park,Train Station,40
 Park,Library,80
 Park,School,90
@@ -10,19 +16,19 @@ Train Station,Library,60
 Train Station,School,50
 Train Station,Museum,35
 Train Station,Cinema,80
-Train Station,Test Hostel,41
+Train Station,Test Hostel,50
 Library,Park,80
 Library,Train Station,60
 Library,School,20
 Library,Museum,70
 Library,Cinema,70
-Library,Test Hostel,86
+Library,Test Hostel,85
 School,Park,90
 School,Train Station,50
 School,Library,20
 School,Museum,60
 School,Cinema,40
-School,Test Hostel,62
+School,Test Hostel,65
 Museum,Park,50
 Museum,Train Station,35
 Museum,Library,70
@@ -34,4 +40,4 @@ Cinema,Train Station,80
 Cinema,Library,70
 Cinema,School,40
 Cinema,Museum,60
-Cinema,Test Hostel,120
+Cinema,Test Hostel,100

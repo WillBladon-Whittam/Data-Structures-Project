@@ -3,7 +3,8 @@ import datetime
 import heapq
 
 
-def prompt_number(prompt: str, _range: Tuple[int, int | None] = None, error_message: str = "Invalid Value!") -> int:
+def prompt_number(prompt: str, _range: Tuple[int | None, int | None] | None = None,
+                  error_message: str = "Invalid Value!") -> int:
     """
     Prompts for a valid number
 
@@ -12,39 +13,21 @@ def prompt_number(prompt: str, _range: Tuple[int, int | None] = None, error_mess
         _range: Can specify a min and/or max number to be required
         error_message: Specify the error message to be displayed
     """
-    selected_option = -1
-    if _range is None:  # If no range is specified
-        while not selected_option > 0:
-            try:
-                selected_option = int(input(prompt))
-            except ValueError:
+    while True:
+        try:
+            selected_option = int(input(prompt))
+            if (_range is None and selected_option > 0) or \
+               (_range is not None and (_range[0] is None or selected_option >= _range[0]) and 
+                (_range[1] is None or selected_option <= _range[1])):
+                return selected_option
+            else:
                 print(f"{error_message}\n")
-                continue
-            if selected_option <= 0:
-                print(f"{error_message}\n")
-        return selected_option
-    elif _range[1] is None:  # If there is a minimum value
-        while not _range[0] <= selected_option:
-            try:
-                selected_option = int(input(prompt))
-            except ValueError:
-                print(f"{error_message}\n")
-                continue
-            if selected_option <= _range[0]:
-                print(f"{error_message}\n")
-    else:  # If there is a range of 2 values
-        while selected_option not in range(_range[0], _range[1] + 1):
-            try:
-                selected_option = int(input(prompt))
-            except ValueError:
-                print(f"{error_message}\n")
-                continue
-            if selected_option not in range(_range[0], _range[1] + 1):
-                print(f"{error_message}\n")
-    return selected_option
+        except ValueError:
+            print(f"{error_message}\n")
 
 
-def prompt_date(prompt: str, _range: Tuple[datetime.date, Union[datetime.date, None]] = None, error_message: str = "Invalid Date!") -> datetime.date:
+def prompt_date(prompt: str, _range: Tuple[datetime.date | None, datetime.date | None] | None = None,
+                error_message: str = "Invalid Date!") -> datetime.date:
     """
     Prompts for a valid date
 
@@ -53,57 +36,30 @@ def prompt_date(prompt: str, _range: Tuple[datetime.date, Union[datetime.date, N
         _range: Can specify a min and/or max date to be required
         error_message: Specify the error message to be displayed
     """
-    date = datetime.date(1, 1, 1)
-    if _range is None:  # If no range is specified
-        while True:
-            try:
-                date_input = input(prompt)  # validate this
-                day, month, year = map(int, date_input.split('-'))
-                date = datetime.date(year=year, month=month, day=day)
+    while True:
+        try:
+            date_input = input(prompt)
+            day, month, year = map(int, date_input.split('-'))
+            date = datetime.date(year, month, day)
+            if (_range is None) or \
+               (_range[0] is None or date >= _range[0]) and \
+               (_range[1] is None or date <= _range[1]):
                 return date
-            except ValueError:
+            else:
                 print(f"{error_message}\n")
-    elif _range[1] is None:  # If there is a minimum value
-        while True:
-            try:
-                date_input = input(prompt)
-                day, month, year = map(int, date_input.split('-'))
-                date = datetime.date(year=year, month=month, day=day)
-            except ValueError:
-                print(f"{error_message}\n")
-                continue
-            if date <= _range[0]:
-                print(f"{error_message}\n")
-                continue
-            return date
-    else:  # If there is a range of 2 values
-        while True:
-            try:
-                date_input = input(prompt)
-                day, month, year = map(int, date_input.split('-'))
-                date = datetime.date(year=year, month=month, day=day)
-            except ValueError:
-                print(f"{error_message}\n")
-                continue
-            if not _range[0] <= date <= _range[1]:
-                print(f"{error_message}\n")
-                continue
-            return date
+        except ValueError:
+            print(f"{error_message}\n")
         
         
 def prompt_yes_no(prompt: str) -> bool:
-        """
-        Prompts the user for a Y/N response
-        """
-        selected_option = None
-        while selected_option not in ["Y", "N", "y", "n"]:
-            selected_option = input(prompt)
-            if selected_option not in ["Y", "N", "y", "n"]:
-                print("Please enter Y/N\n")
-        if selected_option.upper() == "Y":
-            return True
-        elif selected_option.upper() == "N":
-            return False
+    """
+    Prompts the user for a Y/N response
+    """
+    while True:
+        selected_option = input(prompt).strip().upper()
+        if selected_option in ["Y", "N"]:
+            return selected_option == "Y"
+        print("Please enter Y/N\n")
 
 
 def display_options(options: List[str], empty_prompt: str = "List is empty!") -> None:
@@ -155,29 +111,31 @@ def quick_sort(array):
  
 def boyer_moore_search(text, pattern):
     """
-    An implementation of boyer moore.
+    An implementation of the Boyer-Moore string search algorithm.
     
     Time Complexity: O(n)
     Space Complexity: O(1)
     """
-    m = len(pattern)
-    n = len(text)
-    badChar = [-1]*256
- 
-    for i in range(n):
-        badChar[ord(text[i])] = i
-         
-    s = 0
-    while(s <= n-m):
-        j = m-1
- 
-        while j >= 0 and pattern[j] == text[s+j]:
-            j -= 1
- 
-        if j < 0:
+    pattern_length = len(pattern)
+    text_length = len(text)
+    last_occurrence = [-1] * 256
+
+    for index in range(text_length):
+        last_occurrence[ord(text[index])] = index
+
+    shift = 0
+    while shift <= text_length - pattern_length:
+        match_index = pattern_length - 1
+
+        while match_index >= 0 and pattern[match_index] == text[shift + match_index]:
+            match_index -= 1
+
+        if match_index < 0:
             return True
         else:
-            s += max(1, j-badChar[ord(text[s+j])])
+            shift += max(1, match_index - last_occurrence[ord(text[shift + match_index])])
+    
+    return False
             
             
 def heuristic(start, end, heuristic_values):
