@@ -1,6 +1,8 @@
 name,neighbour
+Test Hostel,Park,10
 Park,Train Station,42
 Park,Library,87
+Park,Test Hostel,10
 Train Station,Park,42
 Train Station,Library,94
 Train Station,School,51

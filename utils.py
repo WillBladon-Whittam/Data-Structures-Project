@@ -153,17 +153,17 @@ def quick_sort(array):
  
  
 def boyer_moore_search(text, pattern):
-    '''
+    """
     An implementation of boyer moore.
     
     Time Complexity: O(n)
     Space Complexity: O(1)
-    '''
+    """
     m = len(pattern)
     n = len(text)
     badChar = [-1]*256
  
-    for i in range(m):
+    for i in range(n):
         badChar[ord(text[i])] = i
          
     s = 0

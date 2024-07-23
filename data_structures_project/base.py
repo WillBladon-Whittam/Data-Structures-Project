@@ -74,11 +74,11 @@ class Place:
         # elif search_value in self.address:
         #     return True
         
-        if boyer_moore_search(self.name, search_value):
+        if boyer_moore_search(self.name.lower(), search_value.lower()):
             return True
-        elif boyer_moore_search(self.type, search_value):
+        elif boyer_moore_search(self.type.lower(), search_value.lower()):
             return True
-        elif boyer_moore_search(str(self.address), search_value):
+        elif boyer_moore_search(str(self.address).lower(), search_value.lower()):
             return True
         else:
             return False

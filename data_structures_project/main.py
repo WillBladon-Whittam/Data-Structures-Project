@@ -76,7 +76,7 @@ class Session:
                 self.update_csv()
         self.main_loop()
         
-    def find_place(self, prompt="Please enter the name of the place to stay: ", include_poi=False):
+    def find_place(self, prompt="Please enter the name of the place to stay: ", include_poi=False, route=False):
         """
         Accepts a name, and checks if it is in the list
         """
@@ -90,8 +90,13 @@ class Session:
             if include_poi:
                 for place in [*self.places, *self.poi]:
                     if name == place:
-                        found = True
-                        break # break for loop
+                        if route:
+                            if place.neighbours:
+                                found = True
+                                break # break for loop
+                        else:
+                            found = True
+                            break # break for loop
             else:
                 for place in self.places:
                     if name == place:
@@ -160,20 +165,17 @@ class Session:
             num_neighbours = prompt_number(prompt=f"How many neighbours does {name} have? ")
             
             for i in range(1, num_neighbours+1):
-                place = self.find_place(prompt=f"Please enter neighbour {i}: ", include_poi=True)
+                place = self.find_place(prompt=f"Please enter neighbour {i}: ", include_poi=True, route=True)
                 distance = prompt_number(prompt=f"Please enter the distance to {place.name}: ")
                 neighbours[place.name] = distance
                 place.neighbours[name] = distance  # Add the neighbour to both the newly added place and the existing place
-                
-            enable_heuristics = prompt_yes_no(prompt="Do you want to enable heuristics, this includes the straight-line distance to every place (Y/N)? ")
-            
-            if enable_heuristics:
-                heuristics = {}
-                for place in [*self.places, *self.poi]:
-                    if place.neighbours:
-                        straight_distance = prompt_number(prompt=f"Please enter the straight-line distance to {place.name}: ")
-                        heuristics[place.name] = straight_distance
-                        place.heuristics[name] = straight_distance  # Add the heuristics to both the newly added place and the existing place
+                            
+            heuristics = {}
+            for place in [*self.places, *self.poi]:
+                if place.neighbours:
+                    straight_distance = prompt_number(prompt=f"Please enter the straight-line distance to {place.name}: ")
+                    heuristics[place.name] = straight_distance
+                    place.heuristics[name] = straight_distance  # Add the heuristics to both the newly added place and the existing place
             else:
                 heuristics = None
         else:
@@ -256,11 +258,11 @@ class Session:
                 
                 
     def find_route(self):
-        starting_place = self.find_place(prompt="Please enter the starting location: ", include_poi=True)
+        starting_place = self.find_place(prompt="Please enter the starting location: ", include_poi=True, route=True)
         if starting_place is None:
             return
         
-        ending_place = self.find_place(prompt="Please enter the starting location: ", include_poi=True)
+        ending_place = self.find_place(prompt="Please enter the starting location: ", include_poi=True, route=True)
         if ending_place is None:
             return
         
