@@ -155,7 +155,7 @@ class Session:
         while True:
             place_name = input(prompt)
             for place in places_to_check:
-                if place_name == place:
+                if place_name.lower() == place.name.lower():
                     if not route or place.neighbours:
                         return place
             print("Name not found, please try again.")
@@ -204,6 +204,7 @@ class Session:
         place = Place(name=name, _type=_type, address=address, avalability=avalability, neighbours=neighbours, heuristics=heuristics)
         self.places.append(place)
         self.update_csv()
+        print("Place to stay added successfully")
         
     def search_place(self):
         """
@@ -280,7 +281,7 @@ class Session:
         if starting_place is None:
             return
         
-        ending_place = self.find_place(prompt="Please enter the starting location: ", include_poi=True, route=True)
+        ending_place = self.find_place(prompt="Please enter the ending location: ", include_poi=True, route=True)
         if ending_place is None:
             return
         

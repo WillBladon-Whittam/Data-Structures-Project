@@ -51,7 +51,7 @@ class Place:
         self.enquiries = []
 
     def __str__(self) -> str:
-        return f"Name: {self.name} \nType: {self.type} \nAddress: {self.address} | {self.neighbours} | {self.heuristics}"
+        return f"Name: {self.name} \nType: {self.type} \nAddress: {self.address}"
 
     def __contains__(self, search_value):
         if boyer_moore_search(self.name.lower(), search_value.lower()):
@@ -64,13 +64,13 @@ class Place:
             return False
 
     def __gt__(self, other):
-        return self.name > other
+        return self.name.lower() > other
 
     def __lt__(self, other):
-        return self.name < other
+        return self.name.lower() < other
 
     def __eq__(self, other):
-        return self.name == other
+        return self.name.lower() == other
 
     def __iter__(self):
         return iter([self.name, str(self.type), str(self.address), str(self.avalability)])

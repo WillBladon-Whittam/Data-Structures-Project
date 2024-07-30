@@ -79,50 +79,35 @@ def display_options(options: List[str], empty_prompt: str = "List is empty!") ->
 def quick_sort(array):
     """
     An implementation of quick sort.
-    
-    Time Complexity:
-    - Best Case: O(n log n)
-    - Average Vase: O(n log n)
-    - Worst Case: O(n^2)
-    
-    Space Complexity:
-    - Best Case: O(log n)
-    - Average Vase: O(log n)
-    - Worst Case: O(n)
-    
     """
-    less = []
-    equal = []
-    greater = []
-
-    if len(array) > 1:
-        pivot = array[0]
-        for x in array:
-            if x < pivot:
-                less.append(x)
-            elif x == pivot:
-                equal.append(x)
-            elif x > pivot:
-                greater.append(x)
-        return quick_sort(less) + equal + quick_sort(greater) 
-    else:
+    if len(array) <= 1:
         return array
+    
+    pivot = array[len(array) // 2]
+    left = [x for x in array if x < pivot]
+    middle = [x for x in array if x == pivot]
+    right = [x for x in array if x > pivot]
+    
+    return quick_sort(left) + middle + quick_sort(right)
  
  
 def boyer_moore_search(text, pattern):
     """
     An implementation of the Boyer-Moore string search algorithm.
-    
-    Time Complexity: O(n)
-    Space Complexity: O(1)
     """
     pattern_length = len(pattern)
     text_length = len(text)
-    last_occurrence = [-1] * 256
+    
+    if pattern_length == 0:
+        return False
+    if pattern_length > text_length:
+        return False
 
-    for index in range(text_length):
-        last_occurrence[ord(text[index])] = index
+    last_occurrence = {}
 
+    for index in range(pattern_length):
+        last_occurrence[pattern[index]] = index
+        
     shift = 0
     while shift <= text_length - pattern_length:
         match_index = pattern_length - 1
@@ -133,8 +118,9 @@ def boyer_moore_search(text, pattern):
         if match_index < 0:
             return True
         else:
-            shift += max(1, match_index - last_occurrence[ord(text[shift + match_index])])
-    
+            char_last_occurrence = last_occurrence.get(text[shift + match_index], -1)
+            shift += max(1, match_index - char_last_occurrence)
+
     return False
             
             
